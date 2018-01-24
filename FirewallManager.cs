@@ -1,18 +1,23 @@
 ﻿using NetFwTypeLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Threading;
-using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace SafeKeeper
 {
     static class FirewallManager
     {
+        static readonly Ping pingSender = new Ping();
+        static PingOptions _options = new PingOptions { DontFragment = true };
+
         public static bool whitelistEnabled = false;
         public static bool blockEnabled = false;
-
+        
         public static void FirewallRemoveBlock()
         {
             Debug.WriteLine("PING");
@@ -94,6 +99,8 @@ namespace SafeKeeper
             string log = "";
             byte[] lastIp = IPAddress.Parse("0.0.0.0").GetAddressBytes();
             List<string> ipAddresses = orderIPList(Program.allowedIPs.Keys);
+
+            
             foreach (string ip in ipAddresses)
             {
                 byte[] ipoce = IPAddress.Parse(ip).GetAddressBytes();
@@ -125,13 +132,35 @@ namespace SafeKeeper
         }
         private static List<string> orderIPList(ICollection<string> data)
         {
+            List<string> tempList = new List<string>();
+            // If the IP is not an IP yet, resolve it via pinging
+            foreach (var ip in data)
+            {
+                if (ip.Any(Char.IsLetter))
+                {
+                    try
+                    {
+                        var reply = pingSender.Send(ip, 5);
+                        tempList.Add(reply.Address.ToString());
+                    }
+                    catch (PingException pingexc)
+                    {
+                        MessageBox.Show(pingexc.Message, "Could not ping the given Address!", MessageBoxButtons.OK,
+                            MessageBoxIcon.Asterisk);
+                    }
+                }
+                else
+                    tempList.Add(ip);
+            }
 
-            List<string> sortedIps = data
-                .Select(Version.Parse)
-                .OrderBy(arg => arg)
-                .Select(arg => arg.ToString())
-                .ToList();
-            return sortedIps;
+            var orderedList = tempList.Select(x => x).OrderBy(x => x).Select(x => x).ToList();
+            //List<string> sortedIps = data
+            //    .Select(Version.Parse)
+            //    .OrderBy(arg => arg)
+            //    .Select(arg => arg.ToString())
+            //    .ToList();
+            //return sortedIps;
+            return orderedList;
         }
         private static string dispByteIP(byte[] ip, int ls)
         {

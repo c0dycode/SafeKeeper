@@ -63,5 +63,4 @@ namespace SafeKeeper
             File.WriteAllText("log.txt", lines);
         }
     }
-
 }

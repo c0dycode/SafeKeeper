@@ -49,7 +49,8 @@ namespace SafeKeeper
         {
             string newIP = ipListAddAddress.Text;
             string newName = ipListAddName.Text;
-            if (checkIP(newIP))
+            // If it's a valid IP or a named IP from a something like DynDNS
+            if (checkIP(newIP) || newIP.Any(Char.IsLetter))
             {
                 if (!Program.allowedIPs.ContainsKey(newIP))
                 {
