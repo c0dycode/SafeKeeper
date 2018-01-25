@@ -143,10 +143,10 @@ namespace SafeKeeper
                         var reply = pingSender.Send(ip, 5);
                         tempList.Add(reply.Address.ToString());
                     }
-                    catch (PingException pingexc)
+                    catch (PingException)
                     {
-                        MessageBox.Show(pingexc.Message, "Could not ping the given Address!", MessageBoxButtons.OK,
-                            MessageBoxIcon.Asterisk);
+                        // Ignore non-pingable hostnames and continue
+                        continue;
                     }
                 }
                 else
